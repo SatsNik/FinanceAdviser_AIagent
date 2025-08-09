@@ -21,6 +21,7 @@ if 'first_login' not in st.session_state:
 
 # -------------------- Chat UI --------------------
 def chat_message(message, is_user=False):
+    message = str(message or "")
     bubble_color = "#4CAF50" if is_user else "#ECECEC"
     text_color = "white" if is_user else "black"
     align = "flex-end" if is_user else "flex-start"
