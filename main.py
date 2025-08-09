@@ -1,12 +1,13 @@
 import streamlit as st
 import html
 from database import init_db, register_user, validate_login, save_message, get_chat_history
-# Add at the top of main.py
+from load_data_to_vectorstore import load_data_if_needed 
 from advisor_response import get_advice
 
 
 # -------------------- DB Initialization --------------------
 init_db()
+load_data_if_needed()
 
 # -------------------- Session State Setup --------------------
 if 'logged_in' not in st.session_state:
