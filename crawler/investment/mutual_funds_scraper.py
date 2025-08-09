@@ -3,30 +3,32 @@ from bs4 import BeautifulSoup
 from crawler.utils import save_data_to_csv
 
 def scrape_mutual_funds():
-    urls = {
-        "main": "https://groww.in/mutual-funds",
-        "equity": "https://groww.in/mutual-funds/equity",
-        "debt": "https://groww.in/mutual-funds/debt",
-        "hybrid": "https://groww.in/mutual-funds/hybrid",
-    }
+    url = "https://scripbox.com/mutual-fund"  # ✅ Single URL
     all_data = []
 
-    for category, url in urls.items():
-        print(f"Scraping {category} from {url}")
-        response = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})
-        soup = BeautifulSoup(response.text, 'html.parser')
+    print(f"Scraping mutual funds from {url}")
+    try:
+        response = requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=10)
+        response.raise_for_status()
+    except requests.RequestException as e:
+        print(f"[❌] Error fetching {url}: {e}")
+        return
 
-        headings = [h.get_text(strip=True) for h in soup.find_all(['h1', 'h2', 'h3'])]
-        paragraphs = [p.get_text(strip=True) for p in soup.find_all('p')]
+    soup = BeautifulSoup(response.text, 'html.parser')
 
-        for item in headings + paragraphs:
+    headings = [h.get_text(strip=True) for h in soup.find_all(['h1', 'h2', 'h3'])]
+    paragraphs = [p.get_text(strip=True) for p in soup.find_all('p')]
+
+    for item in headings + paragraphs:
+        if item.strip():
             all_data.append({
                 "category": "mutual_funds",
-                "subcategory": category,
+                "subcategory": "main",  # ✅ Fixed since now there's only one page
                 "content": item
             })
 
     save_data_to_csv("data/investment/mutual_funds_data.csv", all_data)
+    print(f"[✔] Saved {len(all_data)} items to mutual_funds_data.csv")
 
 if __name__ == "__main__":
     scrape_mutual_funds()

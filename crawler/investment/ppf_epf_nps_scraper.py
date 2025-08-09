@@ -1,32 +1,37 @@
+import os
 import requests
-from bs4 import BeautifulSoup
+import pandas as pd
 from crawler.utils import save_data_to_csv
 
 def scrape_ppf_epf_nps():
-    urls = {
-        "main": "https://www.paisabazaar.com/investment-plans/",
-        "ppf": "https://www.paisabazaar.com/public-provident-fund-ppf/",
-        "epf": "https://www.paisabazaar.com/employee-provident-fund-epf/",
-        "nps": "https://www.paisabazaar.com/national-pension-system-nps/",
-    }
-    all_data = []
+    csv_url = "https://www.kaggle.com/datasets/sachinpillai/employee-provident-fund-of-india/download?datasetVersionNumber=1"
+    local_csv_path = "data/investment/ppf_epf_nps_data.csv"
 
-    for category, url in urls.items():
-        print(f"Scraping {category} from {url}")
-        response = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})
-        soup = BeautifulSoup(response.text, 'html.parser')
+    # Create directories if not exist
+    os.makedirs(os.path.dirname(local_csv_path), exist_ok=True)
 
-        headings = [h.get_text(strip=True) for h in soup.find_all(['h1', 'h2', 'h3'])]
-        paragraphs = [p.get_text(strip=True) for p in soup.find_all('p')]
+    print(f"Downloading EPF data from {csv_url} ...")
+    try:
+        response = requests.get(csv_url, stream=True)
+        response.raise_for_status()
 
-        for item in headings + paragraphs:
-            all_data.append({
-                "category": "ppf_epf_nps",
-                "subcategory": category,
-                "content": item
-            })
+        with open(local_csv_path, "wb") as file:
+            for chunk in response.iter_content(chunk_size=1024):
+                if chunk:
+                    file.write(chunk)
 
-    save_data_to_csv("data/investment/ppf_epf_nps_data.csv", all_data)
+        print(f"[✔] CSV saved to {local_csv_path}")
+
+    except requests.RequestException as e:
+        print(f"[❌] Failed to download CSV: {e}")
+        return
+
+    # Optional: Read and re-save with additional metadata
+    df = pd.read_csv(local_csv_path)
+    df["category"] = "ppf_epf_nps"
+    df["subcategory"] = "epf"
+
+    save_data_to_csv(local_csv_path, df.to_dict(orient="records"))
 
 if __name__ == "__main__":
     scrape_ppf_epf_nps()
