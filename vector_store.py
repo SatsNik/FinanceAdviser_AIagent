@@ -2,8 +2,9 @@
 import chromadb
 from chromadb.utils import embedding_functions
 
-# ------------------- Initialize Persistent Chroma Client -------------------
-client = chromadb.PersistentClient(path="./chroma_db")
+# ------------------- Initialize Ephemeral Chroma Client (Cloud Safe) -------------------
+# EphemeralClient means vector DB will live in memory for the session.
+client = chromadb.EphemeralClient()
 
 # ------------------- HuggingFace SentenceTransformer Model -------------------
 hf_embed_fn = embedding_functions.SentenceTransformerEmbeddingFunction(
